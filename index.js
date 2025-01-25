@@ -14,6 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const PORT = process.env.PORT || 4000;
+
 app.use(express.json());
 
 const urls = [
@@ -358,6 +359,7 @@ app.post("/verificar", async (req, res) => {
   const { codigo, numero, nombre } = req.body;
 
   try {
+    if (sesionActiva) {
       if (!codigo || !numero) {
         return res.status(400).send("Faltan parámetros: código o número.");
       }
@@ -382,7 +384,7 @@ app.post("/verificar", async (req, res) => {
           console.error("Error al enviar el mensaje:", error);
           return res.status(500).send("Error al enviar el mensaje.");
         });
-    
+    }
   } catch (error) {
     console.error("Error en el servidor:", error);
     res.status(500).send("Error interno del servidor.");
@@ -415,5 +417,5 @@ io.on("connection", (socket) => {
 
 // Iniciar el servidor
 server.listen(PORT, () => {
-  console.log(`Servidor corriendo el puerto ${PORT}`);
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
