@@ -42,8 +42,8 @@
     isChecking = false;
   };
 
-  // Llamar a la función cada 30 segundos
-  setInterval(checkUrls, 30000);
+  //setInterval(checkUrls, 300000);  // Cada 5 minutos
+
   console.log('Node.js version:', process.version);
 
   // Variables globales
