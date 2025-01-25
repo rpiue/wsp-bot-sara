@@ -14,6 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const PORT = process.env.PORT || 4000;
+app.use(express.json());
 
 const urls = [
   "https://perfil-ldpa.onrender.com",
