@@ -358,7 +358,6 @@ app.post("/verificar", async (req, res) => {
   const { codigo, numero, nombre } = req.body;
 
   try {
-    if (sesionActiva) {
       if (!codigo || !numero) {
         return res.status(400).send("Faltan parámetros: código o número.");
       }
@@ -383,7 +382,7 @@ app.post("/verificar", async (req, res) => {
           console.error("Error al enviar el mensaje:", error);
           return res.status(500).send("Error al enviar el mensaje.");
         });
-    }
+    
   } catch (error) {
     console.error("Error en el servidor:", error);
     res.status(500).send("Error interno del servidor.");
