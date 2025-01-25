@@ -13,12 +13,12 @@ const {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-const PORT = 3000;
+const PORT = process.env.PORT || 4000;
 
 const urls = [
   "https://perfil-ldpa.onrender.com",
   "https://api-yape-hzf2.onrender.com",
-  "https://api-ia-62m4.onrender.com/"
+  "https://api-ia-62m4.onrender.com/",
 ];
 
 // Función para hacer la consulta a las URLs
@@ -26,7 +26,7 @@ const checkUrls = async () => {
   for (let url of urls) {
     try {
       const response = await axios.get(url);
-      console.log(`Consulta exitosa a ${url}: Status ${response.status}`);
+      //console.log(`Consulta exitosa a ${url}: Status ${response.status}`);
     } catch (error) {
       console.error(`Error al consultar ${url}: ${error.message}`);
     }
@@ -35,6 +35,7 @@ const checkUrls = async () => {
 
 // Llamar a la función cada 30 segundos (30000 milisegundos)
 setInterval(checkUrls, 30000);
+console.log('Node.js version:', process.version);
 
 // Variables globales
 let preguntasPrevias = {};
@@ -84,6 +85,7 @@ const waitForUserInput = (sender, message) => {
       registrarPregunta(sender, combinedMessage); // Registra la pregunta en tu base de datos
       const respuesta = await consultarApi(sender, combinedMessage); // Consulta la API
       message.reply(respuesta); // Envía la respuesta al usuario
+      //console.log("La respuesta es:", respuesta);
     } else {
       //message.reply("Ya me has preguntado eso antes.");
       console.log("Ya me has preguntado eso antes.");
@@ -94,7 +96,6 @@ const waitForUserInput = (sender, message) => {
     delete timers[sender];
   }, 30000); // Espera 1 minuto (60,000 milisegundos)
 };
-
 
 // Procesar mensajes entrantes
 client.on("message", async (message) => {
@@ -137,7 +138,10 @@ client.on("message", async (message) => {
       if (esChatPrivado) {
         let isWaitingForEmailAndPhone = false;
         let currentUser = null;
-        if (message.body.includes("cambiar num") && !isWaitingForEmailAndPhone) {
+        if (
+          message.body.includes("cambiar num") &&
+          !isWaitingForEmailAndPhone
+        ) {
           // Responder al comando y pedir correo y número
           client.sendMessage(
             msg.from,
@@ -281,7 +285,7 @@ _¡Gracias por confiar en nosotros!_`;
           }
           userMessages[sender].push(message.body);
           waitForUserInput(sender, message);
-          console.log("Se envio el mensaje a la IA")
+          console.log("Se envio el mensaje a la IA");
           //registrarPregunta(sender, message.body);
           //const respuesta = await consultarApi(sender, message.body);
           //message.reply(respuesta);
@@ -318,10 +322,14 @@ const registrarPregunta = (usuario, pregunta) => {
 // Consultar API externa
 const consultarApi = async (usuario, pregunta) => {
   try {
-    const response = await axios.post("https://api-ia-62m4.onrender.com/consultar", {
-      usuario,
-      pregunta,
-    });
+    const response = await axios.post(
+      "https://api-ia-62m4.onrender.com/consultar",
+      {
+        usuario,
+        pregunta,
+      }
+    );
+    //console.log("Respues desde la api:", response.data.respuesta)
     return response.data.respuesta;
   } catch (error) {
     console.error("Error al consultar la API:", error.message);
@@ -341,30 +349,32 @@ app.post("/verificar", async (req, res) => {
   const { codigo, numero, nombre } = req.body;
 
   try {
-    if (!codigo || !numero) {
-      return res.status(400).send("Faltan parámetros: código o número.");
+    if (sesionActiva) {
+      if (!codigo || !numero) {
+        return res.status(400).send("Faltan parámetros: código o número.");
+      }
+
+      const mensaje = `Hola ${nombre}, tu código es *${codigo}*`;
+      const mensaje2 = `Recuerda que la aplicación es *GRATIS*. No pagues a nadie. Si alguien intenta venderte la aplicación, no lo reclamarle; simplemente repórtalo escribiendo la palabra *reporte*.`;
+      const mensaje3 = `El link de la aplicacion: https://perfil-ldpa.onrender.com`;
+      const chatId = `51${numero}@c.us`;
+
+      // Enviar el mensaje usando whatsapp-web.js
+
+      client
+        .sendMessage(chatId, mensaje)
+        .then((response) => {
+          client.sendMessage(chatId, mensaje2);
+          client.sendMessage(chatId, mensaje3);
+
+          console.log("Mensaje enviado correctamente:");
+          return res.status(200).send("Mensaje enviado.");
+        })
+        .catch((error) => {
+          console.error("Error al enviar el mensaje:", error);
+          return res.status(500).send("Error al enviar el mensaje.");
+        });
     }
-
-    const mensaje = `Hola ${nombre}, tu código es *${codigo}*`;
-    const mensaje2 = `Recuerda que la aplicación es *GRATIS*. No pagues a nadie. Si alguien intenta venderte la aplicación, no lo reclamarle; simplemente repórtalo escribiendo la palabra *reporte*.`;
-    const mensaje3 = `El link de la aplicacion: https://perfil-ldpa.onrender.com`;
-    const chatId = `51${numero}@c.us`;
-
-    // Enviar el mensaje usando whatsapp-web.js
-
-    client
-      .sendMessage(chatId, mensaje)
-      .then((response) => {
-        client.sendMessage(chatId, mensaje2);
-        client.sendMessage(chatId, mensaje3);
-
-        console.log("Mensaje enviado correctamente:");
-        return res.status(200).send("Mensaje enviado.");
-      })
-      .catch((error) => {
-        console.error("Error al enviar el mensaje:", error);
-        return res.status(500).send("Error al enviar el mensaje.");
-      });
   } catch (error) {
     console.error("Error en el servidor:", error);
     res.status(500).send("Error interno del servidor.");
@@ -397,5 +407,5 @@ io.on("connection", (socket) => {
 
 // Iniciar el servidor
 server.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo el puerto ${PORT}`);
 });

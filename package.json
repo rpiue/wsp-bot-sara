@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "node --trace-deprecation index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,7 +14,6 @@
     "axios": "^1.7.9",
     "express": "^4.21.2",
     "firebase": "^11.2.0",
-    "qrcode-terminal": "^0.12.0",
     "socket.io": "^4.8.1",
     "string-similarity": "^4.0.4",
     "whatsapp-web.js": "^1.26.0"
