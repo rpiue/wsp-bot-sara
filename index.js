@@ -3,7 +3,7 @@ const axios = require("axios");
 const stringSimilarity = require("string-similarity");
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const { socketIo } = require("socket.io");
 const {
   fetchEmailsFromFirestore,
   findEmailInCache,
@@ -12,7 +12,7 @@ const {
 // Configuración del servidor
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new socketIo(server);
 const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
