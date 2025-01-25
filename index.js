@@ -21,19 +21,26 @@ const urls = [
   "https://api-ia-62m4.onrender.com/",
 ];
 
-// Función para hacer la consulta a las URLs
+let isChecking = false;
+
 const checkUrls = async () => {
+  if (isChecking) return;  // No ejecutar si ya hay una llamada en curso
+
+  isChecking = true;
+  
   for (let url of urls) {
     try {
       const response = await axios.get(url);
-      //console.log(`Consulta exitosa a ${url}: Status ${response.status}`);
+      // console.log(`Consulta exitosa a ${url}: Status ${response.status}`);
     } catch (error) {
       console.error(`Error al consultar ${url}: ${error.message}`);
     }
   }
+
+  isChecking = false;
 };
 
-// Llamar a la función cada 30 segundos (30000 milisegundos)
+// Llamar a la función cada 30 segundos
 setInterval(checkUrls, 30000);
 console.log('Node.js version:', process.version);
 
@@ -135,6 +142,7 @@ client.on("message", async (message) => {
     };
     if (esGrupo) {
     } else {
+      console.log("Mensaje privado de whatsapp")
       if (esChatPrivado) {
         let isWaitingForEmailAndPhone = false;
         let currentUser = null;
