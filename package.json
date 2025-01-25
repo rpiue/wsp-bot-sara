@@ -15,7 +15,6 @@
     "express": "^4.21.2",
     "firebase": "^11.2.0",
     "socket.io": "^4.8.1",
-    "string-similarity": "^4.0.4",
     "whatsapp-web.js": "^1.26.0"
   },
   "engines": {
