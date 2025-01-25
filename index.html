@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp QR</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <style>
+        /* Reset de estilos básicos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Fondo y fuente global */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            padding: 0;
+        }
+
+        /* Header fijo en la parte superior */
+        header {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #1c2b36;
+            padding: 15px 0;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Ajustar el contenido para que no quede debajo del header */
+        .main-content {
+            margin-top: 70px;
+            /* Altura del header */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Título de la página */
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        /* Canvas del QR */
+        .canvas {
+            /*all: unset;*/
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            width: min-content;
+            height: auto;
+        }
+
+        /* Mensaje de sesión activa */
+        #sesionActiva {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #bee5ff;
+            color: black;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #b0c4de;
+        }
+
+        a {
+            color: #4db8ff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilos responsivos para pantallas más pequeñas */
+        .imag {
+            width: 250px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .imag {
+                width: 50%;
+            }
+
+            .canvas img {
+                width: 90%;
+            }
+
+            footer {
+                font-size: 0.8rem;
+            }
+        }
+
+        textarea,
+        input[type="text"],
+        input[type="file"] {
+            padding: 10px;
+            width: 100%;
+            max-width: 350px;
+            border: none;
+            border-radius: 5px;
+            margin: 5px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+        }
+
+        button {
+            background-color: #6200ea;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3700b3;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header fijo -->
+    <header>Bot de WhatsApp</header>
+
+    <!-- Contenido principal -->
+    <div class="main-content" id="sesionInactiva">
+        <h1>Escanea este código QR para iniciar sesión</h1>
+        <div id="qrcode" class="canvas"></div>
+
+        <!-- Div para mostrar que la sesión está activa -->
+        <div id="sesionActiva">
+            ¡La sesión ya ha sido iniciada!
+        </div>
+
+        <footer>
+            ¿Problemas para escanear el código? Contacta con <a href="mailto:soporte@tudominio.com">soporte técnico</a>.
+        </footer>
+    </div>
+    <div class="main-content" id="sesionActivaDiv" style="display: none;">
+        <h1>QR de imagen de pago</h1>
+        <div id="qrPago">
+
+        </div>
+        <input type="text" id="imageUrl" placeholder="Ingresa la URL de la imagen" />
+        <div class="button-group m-2">
+            <button id="setImageUrl">Establecer URL de la Imagen</button>
+        </div>
+
+
+    </div>
+
+    <script>
+        const socket = io();
+        const canvas = document.getElementById("qrcode");
+        const divQR = document.getElementById("sesionInactiva");
+        const qrPago = document.getElementById("qrPago");
+        const sesionActivaDiv = document.getElementById("sesionActivaDiv");
+
+        // Escuchar el evento "qr" para mostrar el código QR
+        socket.on("qr", (qr) => {
+            canvas.style.display = "block";
+            divQR.style.display = "block";
+            sesionActivaDiv.style.display = "none"; // Ocultar mensaje de sesión activa
+            canvas.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qr)}&size=250x250" />`;
+        });
+
+        // Escuchar el evento para cuando la sesión esté lista
+        socket.on("sesionActiva", () => {
+            // Mostrar mensaje de sesión activa y ocultar el QR
+            sesionActivaDiv.style.display = "block";
+            divQR.style.display = "none";
+            canvas.style.display = "none";
+        });
+
+        socket.on("imageUrl", (setImageUrl) => {
+            // Mostrar mensaje de sesión activa y ocultar el QR
+            if (setImageUrl != '') {
+                qrPago.innerHTML = `<img class="imag" src="${setImageUrl}" />`;
+            }
+        });
+
+        document.getElementById('setImageUrl').addEventListener('click', function () {
+            const url = document.getElementById('imageUrl').value;
+
+            if (url) {
+                socket.emit('setImageUrl', url);
+            } else {
+                alert('Por favor, ingrese la URL del archivo .txt.');
+            }
+        });
+
+    </script>
+</body>
+
+</html>
