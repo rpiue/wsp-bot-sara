@@ -55,8 +55,26 @@
   let mensajesEnviados = [];
 
   // Cliente de WhatsApp
-  const client = new Client();
-
+  const client = new Client({
+    puppeteer: {
+      headless: true, // Mantén el modo sin interfaz gráfica.
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox', 
+        '--disable-dev-shm-usage', // Reduce problemas de memoria compartida.
+        '--disable-accelerated-2d-canvas', // Reduce uso de GPU.
+        '--disable-gpu', // Si no necesitas renderizado gráfico.
+        '--single-process', // Ejecuta todo en un solo proceso.
+        '--no-zygote', // Optimiza procesos secundarios.
+        '--disable-web-security', // Si no necesitas políticas de seguridad estrictas.
+        '--disable-extensions', // Deshabilita extensiones innecesarias.
+        '--disable-software-rasterizer', // Mejora el rendimiento.
+        '--disable-infobars', // Elimina las barras de información.
+        '--window-size=1920,1080', // Configura un tamaño fijo para evitar problemas de renderizado.
+      ],
+    },
+  });
+  
   // Emitir QR cuando esté disponible
   client.on("qr", (qr) => {
     ultimoQR = qr;
@@ -92,8 +110,8 @@
       //if (!esPreguntaSimilar(sender, combinedMessage)) {
         //console.log(combinedMessage)
         registrarPregunta(sender, combinedMessage); // Registra la pregunta en tu base de datos
-        const respuesta = await consultarApi(sender, combinedMessage); // Consulta la API
-        message.reply(respuesta); // Envía la respuesta al usuario
+        //const respuesta = await consultarApi(sender, combinedMessage); // Consulta la API
+        //message.reply(respuesta); // Envía la respuesta al usuario
         //console.log("La respuesta es:", respuesta);
       //} else {
       //  //message.reply("Ya me has preguntado eso antes.");
