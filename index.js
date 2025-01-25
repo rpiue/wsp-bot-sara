@@ -3,7 +3,7 @@ const axios = require("axios");
 const stringSimilarity = require("string-similarity");
 const express = require("express");
 const http = require("http");
-const { socketIo } = require("socket.io");
+const  socketIo  = require("socket.io");
 const {
   fetchEmailsFromFirestore,
   findEmailInCache,
